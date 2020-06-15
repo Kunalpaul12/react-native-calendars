@@ -94,8 +94,14 @@ class Calendar extends Component {
     /** Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates*/
     disableAllTouchEventsForDisabledDays: PropTypes.bool,
     /** Replace default month and year title with custom one. the function receive a date as parameter. */
-    renderHeader: PropTypes.any
+    renderHeader: PropTypes.any,
+
+    disabledDays: PropTypes.array,
   };
+
+  static defaultProps = {
+    disabledDays: [],
+  }
 
   constructor(props) {
     super(props);
@@ -134,12 +140,13 @@ class Calendar extends Component {
     const day = parseDate(date);
     const minDate = parseDate(this.props.minDate);
     const maxDate = parseDate(this.props.maxDate);
+    
     if (!(minDate && !dateutils.isGTE(day, minDate)) && !(maxDate && !dateutils.isLTE(day, maxDate))) {
       const shouldUpdateMonth = this.props.disableMonthChange === undefined || !this.props.disableMonthChange;
       if (shouldUpdateMonth) {
         this.updateMonth(day);
       }
-      if (interaction) {
+      if (interaction && !this.props.disabledDays.includes(date.day)) {
         interaction(xdateToData(day));
       }
     }
@@ -184,6 +191,8 @@ class Calendar extends Component {
     } else if (this.isDateNotInTheRange(minDate, maxDate, day)) {
       state = 'disabled';
     } else if (!dateutils.sameMonth(day, this.state.currentMonth)) {
+      state = 'disabled';
+    } else if(this.props.disabledDays.includes(day.getDate())){
       state = 'disabled';
     } else if (dateutils.sameDate(day, XDate())) {
       state = 'today';
